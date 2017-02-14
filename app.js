@@ -47,22 +47,42 @@ function startRequest(x){
 }
 
 function writeFile(txt,filename){
-	fs.writeFile('./text/'+filename+'.txt',txt,'utf-8',function(err){
-		if(err){
-			throw err;
+	fs.exists('./text/'+filename+'.txt',function(exist){
+		if(exist){
+			console.log(filename+' 文件已存在');
+		}else{
+			fs.writeFile('./text/'+filename+'.txt',txt,'utf-8',function(err){
+				if(err){
+					throw err;
+				}
+			})
 		}
 	})
+	
 }
 
+/**
+ *先判断图片是否存在，
+ *若存在，打印一条信息；
+ *若不存在，则请求图片并保存到本地
+ *
+ */
 function saveImg($,filename){
 	var img_src = 'http:'+$('.bangumi-preview').children().first().attr('src');
 	//console.log('img_src: '+img_src);
-	request.head(img_src,function(err,res,body){
-		if(err){
-			throw err;
+	fs.exists('./img/'+filename+'.jpg',function(exist){
+		if(exist){
+			console.log(filename+' 图片已存在');
+		}else{
+			request.head(img_src,function(err,res,body){
+				if(err){
+					throw err;
+				}
+			});
+			request(img_src).pipe(fs.createWriteStream('./img/'+filename+'.jpg'));
 		}
-	});
-	request(img_src).pipe(fs.createWriteStream('./img/'+filename+'.jpg'));
+	})
+	
 
 }
 

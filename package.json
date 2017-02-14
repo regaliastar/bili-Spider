@@ -1,5 +1,6 @@
 {
-  "name": bili-Spider"version": "1.0.0",
+  "name": "bili-Spider",
+  "version": "1.0.0",
   "description": "",
   "main": "app.js",
   "scripts": {
