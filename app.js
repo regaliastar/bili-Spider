@@ -25,11 +25,16 @@ function startRequest(x){
 			//监听结束事件，即页面信息获取完毕
 			res.on('end',function(){
 				var $ = cheerio.load(html);
-				var infoCount = $('span[class=info-count-item] :last-child').text().trim();
+				var info_title = $('h1[class=info-title]').text().trim();
+
+				//writeFile(html,'myHtml');
+				saveImg($,info_title);
 
 				var av_item = {
-					title:$('h1[class=info-title]').text().trim(),
-					infoCount:infoCount
+					info_title: info_title,
+					info_count: $('.info-count-item-play').text().trim(),
+					info_fans: $('.info-count-item-fans').text().trim(),
+					info_review: $('.info-count-item-review').text().trim()
 				};
 
 				console.log(av_item);
@@ -41,6 +46,24 @@ function startRequest(x){
 	})
 }
 
+function writeFile(txt,filename){
+	fs.writeFile('./text/'+filename+'.txt',txt,'utf-8',function(err){
+		if(err){
+			throw err;
+		}
+	})
+}
 
+function saveImg($,filename){
+	var img_src = 'http:'+$('.bangumi-preview').children().first().attr('src');
+	//console.log('img_src: '+img_src);
+	request.head(img_src,function(err,res,body){
+		if(err){
+			throw err;
+		}
+	});
+	request(img_src).pipe(fs.createWriteStream('./img/'+filename+'.jpg'));
+
+}
 
 fetchPage(url);
