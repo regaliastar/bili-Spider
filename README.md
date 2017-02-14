@@ -1,7 +1,9 @@
 # 基于 nodejs 的bilibili爬虫项目
 
-运行方式
+## 运行方式
+
 `在根目录新建 img,text 文件夹`
+
 ```
 node app
 ```
