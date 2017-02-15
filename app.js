@@ -6,37 +6,65 @@ var http = require('http'),
 
 var av_num = 0,
 	not_found = 0,
+	begin_req = 5793+50,
+	max_req = 200,
+	cur_req = 0,
 	url = "http://bangumi.bilibili.com/anime/",
 	av_all = [];
 
 
 function fetchPage(url,callback) {
+
 	setTimeout(function(){
 		startRequest(url);
 		console.log('正在抓取：'+url);
-	},100); 
-	
-    callback(null);
+	},1000); 
+
+	callback(null);
+
+
 }
 
 
 function startRequest(x){
 	http.get(x,function(res){
-		var html = '',
-			title = [];
+		    var response_timer = setTimeout(function() {
+       			res.emit('timeout');
+    		}, 2000);
+
+			var html = '';
 
 			res.setEncoding('utf-8');
 			res.on('data',function(chunk){
 				html += chunk;
 			});
 
+			//自定义超时事件
+			res.on('timeout',function(){
+				//console.log(x+'请求超时','timeout');
+				//appendFile(x+'请求超时'+'\n','timeout');
+				res.destroy();
+			});
+
 			//监听结束事件，即页面信息获取完毕
 			res.on('end',function(){
 				var $ = cheerio.load(html);
+				cur_req++;
+
+				if(cur_req > max_req){
+					av_all.sort(function(a,b){
+						return b.info_count - a.info_count;
+					});
+					console.log('最受欢迎的番剧：'+JSON.stringify(av_all[0]));
+					appendFile('最受欢迎的番剧：'+JSON.stringify(av_all[0]),'mostPopular');
+					return;
+				}
+
 				if(is404($)){
 					//添加处理代码
 					not_found++;
 					console.log('找不到网页');
+					appendFile('找不到网页'+x+'\n',"test");
 					return;
 				}else{
 					var info_title = $('h1[class=info-title]').text().trim(),
@@ -55,13 +83,15 @@ function startRequest(x){
 					};
 
 					console.log(av_item);
-					appendFile(JSON.stringify(av_item),"test");
+					av_all.push(av_item);
+					appendFile(JSON.stringify(av_item)+'\n',"test");
 				}
 
 			})
 
 	}).on('error',function(err){
-		console.log(err);
+		console.log('error:'+err);
+		appendFile('error'+err+'\n','error');
 	})
 }
 
@@ -114,7 +144,7 @@ function saveImg($,filename){
 				});
 				request(img_src).pipe(fs.createWriteStream('./img/'+filename+'.jpg'));
 			}
-		})
+		});
 	}
 
 }
@@ -140,6 +170,8 @@ function is404($){
 			return t.replace(reg,'')*10000;
 		}else if(t.indexOf('亿') !== -1){
 			return t.replace(reg,'')*100000000;
+		}else if(isNaN(t)){
+			return -1;
 		}else{
 			return t;
 		}
@@ -150,22 +182,23 @@ function is404($){
 //去除空格
 String.prototype.Trim = function() { 
 	return this.replace(/\s+/g, ""); 
-} 
+}
 
 function main(){
 	var urls = [];
-	for(let i = 3000;i<4000;i++){
+	for(let i = begin_req;i<begin_req+max_req+1;i++){
 		urls.push(url+i);
 	}
 
-	async.mapLimit(urls,5,function(url,callback){
+	async.mapLimit(urls,1,function(url,callback){
 		fetchPage(url,callback);
 		av_num++;
 	},function(err,result){
-		console.log(result);
+		console.log('fin');
+		
 	});
 	
-
 }
 
+//运行程序
 main();
