@@ -2,7 +2,7 @@
 
 ## 运行方式
 
-`在根目录新建 img,text 文件夹`
+`在根目录的public目录新建 img,text 文件夹`
 
 ```
 node app
@@ -12,6 +12,3 @@ node app
 
 1. cheerio
 2. request
-
-## license 
-MIT
